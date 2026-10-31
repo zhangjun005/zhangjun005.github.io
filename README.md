@@ -66,6 +66,16 @@ node scripts/update-contrib.mjs
 注意：GitHub 的 contribution activity 时间线**不包含 release**，所以脚本会额外调用
 Releases API，把本月的发布补进列表（前面是蓝点的条目）。
 
+## 每天自动更新（GitHub Actions）
+
+`.github/workflows/update-contrib.yml` 每天 **北京时间 08:30** 自动跑一次：
+
+- 重新生成贡献图 + 最近活动
+- 只有内容真的变了才会提交，不会产生空 commit
+- 自动提交后会触发 Pages 重新构建，约 1 分钟后线上生效
+- 用的是仓库自带的 `GITHUB_TOKEN`（`contents: write`），**不需要配置任何 secret**
+- 想立刻跑一次：仓库 **Actions** 页面 → 左侧 `update contributions` → 右侧 **Run workflow**
+
 ## 字体许可
 
 - Departure Mono — Copyright 2022–2024 Helena Zhang，SIL OFL 1.1

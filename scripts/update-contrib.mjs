@@ -154,16 +154,22 @@ for (const block of itemBlocks) {
 }
 
 /* GitHub 的 contribution activity 时间线不列 release，这里用 Releases API 把本月的发布补上 */
+const GH_TOKEN = process.env.GITHUB_TOKEN
+const apiHeaders = {
+  accept: 'application/vnd.github+json',
+  'user-agent': 'homepage-contrib/2.0',
+  ...(GH_TOKEN ? { authorization: `Bearer ${GH_TOKEN}` } : {}),
+}
+
 const releaseRows = []
 if (monthKey) {
   try {
-    const gh = { accept: 'application/vnd.github+json', 'user-agent': 'homepage-contrib/2.0' }
-    const reposRes = await fetch(`https://api.github.com/users/${USER}/repos?per_page=100`, { headers: gh })
+    const reposRes = await fetch(`https://api.github.com/users/${USER}/repos?per_page=100`, { headers: apiHeaders })
     if (reposRes.ok) {
       const repos = (await reposRes.json()).filter((r) => !r.fork)
       for (const repo of repos) {
         const relRes = await fetch(`https://api.github.com/repos/${repo.full_name}/releases?per_page=30`, {
-          headers: gh,
+          headers: apiHeaders,
         })
         if (!relRes.ok) continue
         for (const rel of await relRes.json()) {

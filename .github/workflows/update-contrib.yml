@@ -1,0 +1,48 @@
+name: update contributions
+
+on:
+  # 每天 00:30 UTC = 北京时间 08:30
+  schedule:
+    - cron: '30 0 * * *'
+  # 也可以在 Actions 页面手动点「Run workflow」
+  workflow_dispatch:
+  # 首次推送本文件时自动跑一次，方便验证
+  push:
+    paths:
+      - '.github/workflows/update-contrib.yml'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: update-contrib
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+
+      - name: setup node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: regenerate contribution graph & activity
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: node scripts/update-contrib.mjs
+
+      - name: commit if changed
+        run: |
+          if [ -z "$(git status --porcelain)" ]; then
+            echo "数据没有变化，跳过提交"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "chore: 更新贡献图与最近活动"
+          git push
